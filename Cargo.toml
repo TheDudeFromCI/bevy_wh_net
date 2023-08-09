@@ -1,0 +1,13 @@
+[package]
+name = "bevy_wh_net"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { version = "0.11.0", default-features = false }
+bevy_renet = "0.0.9"
+bincode = "1.0.0"
+serde = "1.0.183"
+
+[dev-dependencies]
+serde = { version = "1.0.183", features = ["derive"] }
