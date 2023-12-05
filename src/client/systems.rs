@@ -1,14 +1,18 @@
-use super::events::*;
-use super::resources::*;
+use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
+use std::time::SystemTime;
+
 use bevy::prelude::*;
 use bevy_renet::renet::transport::{
-    ClientAuthentication, NetcodeClientTransport, NetcodeTransportError
+    ClientAuthentication,
+    NetcodeClientTransport,
+    NetcodeTransportError,
 };
 use bevy_renet::renet::{ConnectionConfig, DefaultChannel, RenetClient};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
-use std::time::SystemTime;
+
+use super::events::*;
+use super::resources::*;
 
 pub(super) fn connect_to_server(
     mut events_conn_to_server: EventReader<TryConnectToServerEvent>,
@@ -24,12 +28,14 @@ pub(super) fn connect_to_server(
 
         let client = RenetClient::new(ConnectionConfig::default());
         let socket = UdpSocket::bind("127.0.0.1:0").unwrap();
-        let time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+        let time = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap();
         let auth = ClientAuthentication::Unsecure {
             protocol_id: super::PROTOCOL_ID,
-            client_id:   time.as_millis() as u64,
+            client_id: time.as_millis() as u64,
             server_addr: addr,
-            user_data:   None,
+            user_data: None,
         };
         let transport = NetcodeClientTransport::new(time, auth, socket).unwrap();
 
@@ -96,9 +102,7 @@ pub(super) fn receive_packets<T>(
             continue;
         };
 
-        events.send(ReceivePacket {
-            packet,
-        });
+        events.send(ReceivePacket { packet });
     }
 }
 

@@ -1,9 +1,10 @@
-use super::{ClientConnectedEvent, ClientDisconnectedEvent, ReceivePacket, SendPacket};
 use bevy::prelude::*;
 use bevy_renet::renet::transport::NetcodeTransportError;
 use bevy_renet::renet::{DefaultChannel, RenetServer, ServerEvent};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+
+use super::{ClientConnectedEvent, ClientDisconnectedEvent, ReceivePacket, SendPacket};
 
 pub(super) fn server_event_handler(
     mut server_events: EventReader<ServerEvent>,
@@ -12,13 +13,11 @@ pub(super) fn server_event_handler(
 ) {
     for event in server_events.iter() {
         match event {
-            ServerEvent::ClientConnected {
-                client_id,
-            } => {
+            ServerEvent::ClientConnected { client_id } => {
                 connected_events.send(ClientConnectedEvent {
                     client_id: *client_id,
                 });
-            },
+            }
             ServerEvent::ClientDisconnected {
                 client_id,
                 reason: _,
@@ -26,7 +25,7 @@ pub(super) fn server_event_handler(
                 disconnected_events.send(ClientDisconnectedEvent {
                     client_id: *client_id,
                 });
-            },
+            }
         };
     }
 }
@@ -62,10 +61,7 @@ pub(super) fn receive_packets<T>(
                 continue;
             };
 
-            events.send(ReceivePacket {
-                packet,
-                client_id,
-            });
+            events.send(ReceivePacket { packet, client_id });
         }
     }
 }

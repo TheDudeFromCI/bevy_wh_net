@@ -12,9 +12,9 @@ fn main() {
     App::new()
         .add_plugins(MinimalPlugins)
         .add_plugins(ServerNetworkingPlugin::<PingPongPacket> {
-            ip:          String::from("127.0.0.1:8123"),
+            ip: String::from("127.0.0.1:8123"),
             max_clients: 16,
-            _phantom:    Default::default(),
+            _phantom: Default::default(),
         })
         .add_systems(Update, (client_connected, client_disconnected, pong_pong))
         .run();
@@ -38,7 +38,7 @@ fn pong_pong(
 ) {
     for ev in ping_event.iter() {
         pong_event.send(SendPacket {
-            packet:    PingPongPacket::Pong,
+            packet: PingPongPacket::Pong,
             client_id: ev.client_id,
         });
 
