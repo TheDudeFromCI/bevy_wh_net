@@ -3,19 +3,19 @@ use bevy::prelude::*;
 use crate::common::PacketContainer;
 
 #[derive(Debug, Event)]
-pub struct OnJoinedServer;
+pub struct OnConnectToServer;
 
 #[derive(Debug, Event)]
-pub struct OnDisconnectedFromServer;
+pub struct OnDisconnectFromServer;
 
 #[derive(Debug, Event)]
 pub struct OnCouldNotConnectToServer;
 
 #[derive(Debug, Event, Deref)]
-pub struct DoSendPacket(pub PacketContainer);
+pub struct DoSendPacketToServer(pub PacketContainer);
 
 #[derive(Debug, Event, Deref)]
-pub struct OnReceivePacket(pub PacketContainer);
+pub struct OnReceivePacketFromServer(pub PacketContainer);
 
 #[derive(Debug, Event)]
 pub struct DoConnectToServer {

@@ -54,12 +54,12 @@ pub(super) fn connect_to_server(
 
 pub(super) fn wait_for_connection(
     client: Res<RenetClient>,
-    mut events: EventWriter<OnJoinedServer>,
+    mut events: EventWriter<OnConnectToServer>,
     mut next_state: ResMut<NextState<NetworkState>>,
 ) {
     if client.is_connected() {
         next_state.set(NetworkState::Connected);
-        events.send(OnJoinedServer);
+        events.send(OnConnectToServer);
         info!("Client joined server.");
     }
 }
@@ -68,7 +68,7 @@ pub(super) fn handle_broken_connection(
     current_state: Res<State<NetworkState>>,
     client: Res<RenetClient>,
     mut failed_con_events: EventWriter<OnCouldNotConnectToServer>,
-    mut disconnected_events: EventWriter<OnDisconnectedFromServer>,
+    mut disconnected_events: EventWriter<OnDisconnectFromServer>,
     mut next_state: ResMut<NextState<NetworkState>>,
 ) {
     if client.is_disconnected() {
@@ -76,7 +76,7 @@ pub(super) fn handle_broken_connection(
             failed_con_events.send(OnCouldNotConnectToServer);
             warn!("Client failed to connect to server.");
         } else {
-            disconnected_events.send(OnDisconnectedFromServer);
+            disconnected_events.send(OnDisconnectFromServer);
             info!("Client disconnected from server.");
         }
 
@@ -84,7 +84,10 @@ pub(super) fn handle_broken_connection(
     }
 }
 
-pub(super) fn send_packet(mut client: ResMut<RenetClient>, mut events: EventReader<DoSendPacket>) {
+pub(super) fn send_packet(
+    mut client: ResMut<RenetClient>,
+    mut events: EventReader<DoSendPacketToServer>,
+) {
     for ev in events.read() {
         let Some(message) = ev.serialize() else {
             warn!("Failed to serialize packet!");
@@ -96,7 +99,7 @@ pub(super) fn send_packet(mut client: ResMut<RenetClient>, mut events: EventRead
 
 pub(super) fn receive_packets(
     mut client: ResMut<RenetClient>,
-    mut events: EventWriter<OnReceivePacket>,
+    mut events: EventWriter<OnReceivePacketFromServer>,
 ) {
     while let Some(message) = client.receive_message(DefaultChannel::ReliableOrdered) {
         let Some(packet) = PacketContainer::deserialize(&message) else {
@@ -104,7 +107,7 @@ pub(super) fn receive_packets(
             continue;
         };
 
-        events.send(OnReceivePacket(packet));
+        events.send(OnReceivePacketFromServer(packet));
     }
 }
 
@@ -125,7 +128,7 @@ pub(super) fn close_connection_on_exit(
 
 pub(super) fn disconnect_from_server(
     mut events: EventReader<DoDisconnectFromServer>,
-    mut disconnected_events: EventWriter<OnDisconnectedFromServer>,
+    mut disconnected_events: EventWriter<OnDisconnectFromServer>,
     mut client: ResMut<RenetClient>,
     mut transport: ResMut<NetcodeClientTransport>,
     mut next_state: ResMut<NextState<NetworkState>>,
@@ -134,7 +137,7 @@ pub(super) fn disconnect_from_server(
         client.disconnect();
         transport.disconnect();
         next_state.set(NetworkState::NotConnected);
-        disconnected_events.send(OnDisconnectedFromServer);
+        disconnected_events.send(OnDisconnectFromServer);
         info!("Client disconnected from server.")
     }
 }

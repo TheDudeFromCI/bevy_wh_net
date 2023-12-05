@@ -5,10 +5,10 @@ use bevy_renet::renet::{DefaultChannel, RenetServer, ServerEvent};
 
 use super::{
     ClientConnection,
-    DoSendPacket,
+    DoSendPacketToClient,
     OnClientConnected,
     OnClientDisconnected,
-    OnReceivePacket,
+    OnReceivePacketFromClient,
 };
 use crate::common::PacketContainer;
 
@@ -53,7 +53,10 @@ pub(super) fn server_event_handler(
     }
 }
 
-pub(super) fn send_packet(mut server: ResMut<RenetServer>, mut events: EventReader<DoSendPacket>) {
+pub(super) fn send_packet(
+    mut server: ResMut<RenetServer>,
+    mut events: EventReader<DoSendPacketToClient>,
+) {
     for ev in events.read() {
         if !server.is_connected(ev.client_id) {
             continue;
@@ -70,7 +73,7 @@ pub(super) fn send_packet(mut server: ResMut<RenetServer>, mut events: EventRead
 
 pub(super) fn receive_packets(
     mut server: ResMut<RenetServer>,
-    mut events: EventWriter<OnReceivePacket>,
+    mut events: EventWriter<OnReceivePacketFromClient>,
 ) {
     for client_id in server.clients_id().into_iter() {
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
@@ -80,7 +83,7 @@ pub(super) fn receive_packets(
                 continue;
             };
 
-            events.send(OnReceivePacket { packet, client_id });
+            events.send(OnReceivePacketFromClient { packet, client_id });
         }
     }
 }

@@ -16,13 +16,13 @@ pub struct OnClientDisconnected {
 }
 
 #[derive(Debug, Event)]
-pub struct DoSendPacket {
+pub struct DoSendPacketToClient {
     pub packet: PacketContainer,
     pub client_id: ClientId,
 }
 
 #[derive(Debug, Event)]
-pub struct OnReceivePacket {
+pub struct OnReceivePacketFromClient {
     pub packet: PacketContainer,
     pub client_id: ClientId,
 }

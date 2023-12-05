@@ -13,11 +13,11 @@ pub struct ClientNetworkingPlugin;
 impl Plugin for ClientNetworkingPlugin {
     fn build(&self, app_: &mut App) {
         app_.add_state::<NetworkState>()
-            .add_event::<OnJoinedServer>()
-            .add_event::<OnDisconnectedFromServer>()
+            .add_event::<OnConnectToServer>()
+            .add_event::<OnDisconnectFromServer>()
             .add_event::<OnCouldNotConnectToServer>()
-            .add_event::<OnReceivePacket>()
-            .add_event::<DoSendPacket>()
+            .add_event::<OnReceivePacketFromServer>()
+            .add_event::<DoSendPacketToServer>()
             .add_event::<DoConnectToServer>()
             .add_event::<DoDisconnectFromServer>()
             .add_plugins((RenetClientPlugin, NetcodeClientPlugin))
