@@ -1,33 +1,26 @@
 use bevy::prelude::*;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 
-#[derive(Debug, Event, Clone)]
-pub struct TryConnectToServerEvent {
+use crate::common::PacketContainer;
+
+#[derive(Debug, Event)]
+pub struct OnJoinedServer;
+
+#[derive(Debug, Event)]
+pub struct OnDisconnectedFromServer;
+
+#[derive(Debug, Event)]
+pub struct OnCouldNotConnectToServer;
+
+#[derive(Debug, Event, Deref)]
+pub struct DoSendPacket(pub PacketContainer);
+
+#[derive(Debug, Event, Deref)]
+pub struct OnReceivePacket(pub PacketContainer);
+
+#[derive(Debug, Event)]
+pub struct DoConnectToServer {
     pub ip: String,
 }
 
-#[derive(Debug, Event, Clone)]
-pub struct JoinedServerEvent;
-
-#[derive(Debug, Event, Clone)]
-pub struct DisconnectedFromServerEvent;
-
-#[derive(Debug, Event, Clone)]
-pub struct CouldNotConnectToServerEvent;
-
-#[derive(Debug, Event, Clone)]
-pub struct SendPacket<T>
-where
-    T: Serialize + DeserializeOwned + Send + Sync + 'static,
-{
-    pub packet: T,
-}
-
-#[derive(Debug, Event, Clone)]
-pub struct ReceivePacket<T>
-where
-    T: Serialize + DeserializeOwned + Send + Sync + 'static,
-{
-    pub packet: T,
-}
+#[derive(Debug, Event)]
+pub struct DoDisconnectFromServer;

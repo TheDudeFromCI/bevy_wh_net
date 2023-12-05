@@ -1,31 +1,28 @@
 use bevy::prelude::*;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use bevy_renet::renet::ClientId;
 
-#[derive(Debug, Event, Clone)]
-pub struct ClientConnectedEvent {
-    pub client_id: u64,
+use crate::common::PacketContainer;
+
+#[derive(Debug, Event)]
+pub struct OnClientConnected {
+    pub client_id: ClientId,
+    pub entity: Entity,
 }
 
-#[derive(Debug, Event, Clone)]
-pub struct ClientDisconnectedEvent {
-    pub client_id: u64,
+#[derive(Debug, Event)]
+pub struct OnClientDisconnected {
+    pub client_id: ClientId,
+    pub entity: Entity,
 }
 
-#[derive(Debug, Event, Clone)]
-pub struct SendPacket<T>
-where
-    T: Serialize + DeserializeOwned + Send + Sync + 'static,
-{
-    pub packet: T,
-    pub client_id: u64,
+#[derive(Debug, Event)]
+pub struct DoSendPacket {
+    pub packet: PacketContainer,
+    pub client_id: ClientId,
 }
 
-#[derive(Debug, Event, Clone)]
-pub struct ReceivePacket<T>
-where
-    T: Serialize + DeserializeOwned + Send + Sync + 'static,
-{
-    pub packet: T,
-    pub client_id: u64,
+#[derive(Debug, Event)]
+pub struct OnReceivePacket {
+    pub packet: PacketContainer,
+    pub client_id: ClientId,
 }
