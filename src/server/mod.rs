@@ -40,6 +40,7 @@ impl Plugin for ServerNetworkingPlugin {
             .add_event::<OnClientDisconnected>()
             .add_event::<OnReceivePacketFromClient>()
             .add_event::<DoSendPacketToClient>()
+            .add_event::<DoKickPlayer>()
             .add_plugins((RenetServerPlugin, NetcodeServerPlugin))
             .add_systems(
                 Update,
@@ -48,6 +49,7 @@ impl Plugin for ServerNetworkingPlugin {
                     systems::error_handling,
                     systems::send_packet,
                     systems::receive_packets,
+                    systems::kick_player,
                 ),
             )
             .add_systems(Last, systems::close_connections_on_exit);

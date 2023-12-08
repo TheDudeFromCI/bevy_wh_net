@@ -5,12 +5,13 @@ use bevy_renet::renet::{DefaultChannel, RenetServer, ServerEvent};
 
 use super::{
     ClientConnection,
+    DoKickPlayer,
     DoSendPacketToClient,
     OnClientConnected,
     OnClientDisconnected,
     OnReceivePacketFromClient,
 };
-use crate::common::PacketContainer;
+use crate::common::{KickPacket, PacketContainer};
 
 pub(super) fn server_event_handler(
     mut clients: Query<(Entity, &mut ClientConnection)>,
@@ -104,4 +105,21 @@ pub(super) fn close_connections_on_exit(
     }
     server.disconnect_all();
     transport.disconnect_all(&mut server);
+}
+
+pub(super) fn kick_player(
+    mut server: ResMut<RenetServer>,
+    mut do_kick_players: EventReader<DoKickPlayer>,
+    mut do_send_packet: EventWriter<DoSendPacketToClient>,
+) {
+    for ev in do_kick_players.read() {
+        do_send_packet.send(DoSendPacketToClient {
+            packet: KickPacket {
+                reason: ev.reason.clone(),
+            }
+            .into(),
+            client_id: ev.client_id,
+        });
+        server.disconnect(ev.client_id);
+    }
 }

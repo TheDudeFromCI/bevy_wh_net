@@ -26,3 +26,9 @@ pub struct OnReceivePacketFromClient {
     pub packet: PacketContainer,
     pub client_id: ClientId,
 }
+
+#[derive(Debug, Event)]
+pub struct DoKickPlayer {
+    pub client_id: ClientId,
+    pub reason: String,
+}
