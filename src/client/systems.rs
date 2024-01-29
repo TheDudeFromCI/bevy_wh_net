@@ -8,7 +8,7 @@ use bevy_renet::renet::{ConnectionConfig, DefaultChannel, RenetClient};
 
 use super::events::*;
 use super::resources::*;
-use crate::common::{PacketContainer, PROTOCOL_ID};
+use crate::common::{HandshakePacket, PacketContainer, PROTOCOL_ID};
 
 pub(super) fn connect_to_server(
     mut events_conn_to_server: EventReader<DoConnectToServer>,
@@ -39,7 +39,7 @@ pub(super) fn connect_to_server(
             protocol_id: *PROTOCOL_ID,
             client_id: time.as_millis() as u64,
             server_addr: *addr,
-            user_data: None,
+            user_data: event.login_data.as_ref().map(|data| data.as_bytes()),
         };
 
         let transport = NetcodeClientTransport::new(time, auth, socket).unwrap();
@@ -60,7 +60,7 @@ pub(super) fn wait_for_connection(
     if client.is_connected() {
         next_state.set(NetworkState::Connected);
         events.send(OnConnectToServer);
-        info!("Client joined server.");
+        info!("Client joined server. Waiting for validation.");
     }
 }
 
@@ -139,5 +139,19 @@ pub(super) fn disconnect_from_server(
         next_state.set(NetworkState::NotConnected);
         disconnected_events.send(OnDisconnectFromServer);
         info!("Client disconnected from server.")
+    }
+}
+
+pub(super) fn wait_for_validation(
+    mut on_packet_evs: EventReader<OnReceivePacketFromServer>,
+    mut on_join_evs: EventWriter<OnJoinedServer>,
+) {
+    for ev in on_packet_evs.read() {
+        if ev.0.as_packet::<HandshakePacket>().is_none() {
+            continue;
+        };
+
+        on_join_evs.send(OnJoinedServer);
+        info!("Client validated by server.");
     }
 }

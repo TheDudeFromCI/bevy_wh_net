@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_renet::renet::ClientId;
 
-use crate::common::PacketContainer;
+use crate::common::{LoginData, PacketContainer};
 
 #[derive(Debug, Event)]
 pub struct OnClientConnected {
     pub client_id: ClientId,
     pub entity: Entity,
+    pub login_data: Option<LoginData>,
 }
 
 #[derive(Debug, Event)]
@@ -31,4 +32,14 @@ pub struct OnReceivePacketFromClient {
 pub struct DoKickPlayer {
     pub client_id: ClientId,
     pub reason: String,
+}
+
+#[derive(Debug, Event)]
+pub struct OnClientJoin {
+    pub entity: Entity,
+}
+
+#[derive(Debug, Event)]
+pub struct DoValidateClient {
+    pub client_id: ClientId,
 }

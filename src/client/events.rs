@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::common::PacketContainer;
+use crate::common::{LoginData, PacketContainer};
 
 #[derive(Debug, Event)]
 pub struct OnConnectToServer;
@@ -20,7 +20,11 @@ pub struct OnReceivePacketFromServer(pub PacketContainer);
 #[derive(Debug, Event)]
 pub struct DoConnectToServer {
     pub ip: String,
+    pub login_data: Option<LoginData>,
 }
 
 #[derive(Debug, Event)]
 pub struct DoDisconnectFromServer;
+
+#[derive(Debug, Event)]
+pub struct OnJoinedServer;

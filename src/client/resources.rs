@@ -6,4 +6,9 @@ pub enum NetworkState {
     NotConnected,
     Connecting,
     Connected,
+    Joined,
+}
+
+pub fn condition_is_connected(state: Res<State<NetworkState>>) -> bool {
+    *state.get() == NetworkState::Connected || *state.get() == NetworkState::Joined
 }

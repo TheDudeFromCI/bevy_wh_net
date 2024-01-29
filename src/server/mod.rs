@@ -41,6 +41,8 @@ impl Plugin for ServerNetworkingPlugin {
             .add_event::<OnReceivePacketFromClient>()
             .add_event::<DoSendPacketToClient>()
             .add_event::<DoKickPlayer>()
+            .add_event::<OnClientJoin>()
+            .add_event::<DoValidateClient>()
             .add_plugins((RenetServerPlugin, NetcodeServerPlugin))
             .add_systems(
                 Update,
@@ -50,6 +52,7 @@ impl Plugin for ServerNetworkingPlugin {
                     systems::send_packet,
                     systems::receive_packets,
                     systems::kick_player,
+                    systems::join_player,
                 ),
             )
             .add_systems(Last, systems::close_connections_on_exit);
