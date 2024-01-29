@@ -21,15 +21,29 @@ pub(super) fn server_event_handler(
     mut server_events: EventReader<ServerEvent>,
     mut connected_events: EventWriter<OnClientConnected>,
     mut disconnected_events: EventWriter<OnClientDisconnected>,
+    mut do_kick_players: EventWriter<DoKickPlayer>,
     mut commands: Commands,
 ) {
     for event in server_events.read() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
-                let login_data = transport
-                    .user_data(*client_id)
-                    .as_ref()
-                    .map(|data| LoginData::from_bytes(data).unwrap());
+                let login_data = match transport.user_data(*client_id).as_ref() {
+                    Some(bytes) => match LoginData::from_bytes(bytes) {
+                        Ok(data) => Some(data),
+                        Err(_) => {
+                            warn!(
+                                "Failed to deserialize login data from client {}. Kicking player.",
+                                client_id
+                            );
+                            do_kick_players.send(DoKickPlayer {
+                                client_id: *client_id,
+                                reason: "Failed to deserialize login data.".to_owned(),
+                            });
+                            continue;
+                        }
+                    },
+                    None => None,
+                };
 
                 let username = login_data
                     .as_ref()
@@ -91,6 +105,7 @@ pub(super) fn send_packet(
 }
 
 pub(super) fn receive_packets(
+    mut do_kick_players: EventWriter<DoKickPlayer>,
     mut server: ResMut<RenetServer>,
     mut events: EventWriter<OnReceivePacketFromClient>,
 ) {
@@ -98,7 +113,14 @@ pub(super) fn receive_packets(
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
         {
             let Some(packet) = PacketContainer::deserialize(&message) else {
-                warn!("Failed to deserialize packet from {}!", client_id);
+                warn!(
+                    "Failed to deserialize packet from {}! Kicking player.",
+                    client_id
+                );
+                do_kick_players.send(DoKickPlayer {
+                    client_id,
+                    reason: "Failed to deserialize packet.".to_owned(),
+                });
                 continue;
             };
 
