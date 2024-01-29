@@ -18,8 +18,9 @@ pub fn run() {
 fn init(mut do_connect_to_server: EventWriter<DoConnectToServer>) {
     let username = "Player".into();
     let password = "Password".into();
-    let login_data = LoginData::new(username, password).unwrap();
+    info!("Logging in as `{}` with password `{}`", username, password);
 
+    let login_data = LoginData::new(username, password).unwrap();
     do_connect_to_server.send(DoConnectToServer {
         ip: "127.0.0.1:8123".into(),
         login_data: Some(login_data),
