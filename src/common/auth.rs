@@ -47,7 +47,7 @@ impl LoginData {
 
         let bytes = bincode::serialize(self).unwrap();
         buffer[0] = bytes.len() as u8;
-        buffer[1 .. bytes.len()].copy_from_slice(&bytes);
+        buffer[1 ..= bytes.len()].copy_from_slice(&bytes);
 
         buffer
     }
