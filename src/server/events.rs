@@ -33,3 +33,13 @@ pub struct DoKickPlayer {
     pub client_id: ClientId,
     pub reason: String,
 }
+
+#[derive(Debug, Event)]
+pub struct OnClientJoin {
+    pub entity: Entity,
+}
+
+#[derive(Debug, Event)]
+pub struct DoValidateClient {
+    pub client_id: ClientId,
+}

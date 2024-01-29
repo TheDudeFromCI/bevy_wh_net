@@ -20,6 +20,7 @@ impl Plugin for ClientNetworkingPlugin {
             .add_event::<DoSendPacketToServer>()
             .add_event::<DoConnectToServer>()
             .add_event::<DoDisconnectFromServer>()
+            .add_event::<OnJoinedServer>()
             .add_plugins((RenetClientPlugin, NetcodeClientPlugin))
             .add_systems(
                 Update,
@@ -28,14 +29,15 @@ impl Plugin for ClientNetworkingPlugin {
                     systems::wait_for_connection.run_if(in_state(NetworkState::Connecting)),
                     systems::handle_broken_connection
                         .run_if(not(in_state(NetworkState::NotConnected))),
-                    systems::send_packet.run_if(in_state(NetworkState::Connected)),
-                    systems::receive_packets.run_if(in_state(NetworkState::Connected)),
-                    systems::disconnect_from_server.run_if(in_state(NetworkState::Connected)),
+                    systems::send_packet.run_if(in_state(NetworkState::Joined)),
+                    systems::receive_packets.run_if(condition_is_connected),
+                    systems::disconnect_from_server.run_if(condition_is_connected),
+                    systems::wait_for_validation.run_if(in_state(NetworkState::Connected)),
                 ),
             )
             .add_systems(
                 Last,
-                systems::close_connection_on_exit.run_if(in_state(NetworkState::Connected)),
+                systems::close_connection_on_exit.run_if(condition_is_connected),
             );
     }
 }

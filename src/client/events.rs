@@ -25,3 +25,6 @@ pub struct DoConnectToServer {
 
 #[derive(Debug, Event)]
 pub struct DoDisconnectFromServer;
+
+#[derive(Debug, Event)]
+pub struct OnJoinedServer;

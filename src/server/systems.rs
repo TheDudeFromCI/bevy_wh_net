@@ -7,11 +7,13 @@ use super::{
     ClientConnection,
     DoKickPlayer,
     DoSendPacketToClient,
+    DoValidateClient,
     OnClientConnected,
     OnClientDisconnected,
+    OnClientJoin,
     OnReceivePacketFromClient,
 };
-use crate::common::{KickPacket, LoginData, PacketContainer};
+use crate::common::{HandshakePacket, KickPacket, LoginData, PacketContainer};
 
 pub(super) fn server_event_handler(
     transport: Res<NetcodeServerTransport>,
@@ -24,11 +26,18 @@ pub(super) fn server_event_handler(
     for event in server_events.read() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
-                let id = commands.spawn(ClientConnection::new(*client_id)).id();
                 let login_data = transport
                     .user_data(*client_id)
                     .as_ref()
                     .map(|data| LoginData::from_bytes(data).unwrap());
+
+                let username = login_data
+                    .as_ref()
+                    .map(|data| data.get_username())
+                    .unwrap_or_else(|| "Player");
+
+                let client_connection = ClientConnection::new(*client_id, username.to_owned());
+                let id = commands.spawn(client_connection).id();
 
                 connected_events.send(OnClientConnected {
                     client_id: *client_id,
@@ -36,7 +45,10 @@ pub(super) fn server_event_handler(
                     login_data,
                 });
 
-                info!("Client {} connected.", client_id);
+                info!(
+                    "Client {} connected. Waiting for authentication.",
+                    client_id
+                );
             }
             ServerEvent::ClientDisconnected {
                 client_id,
@@ -117,6 +129,7 @@ pub(super) fn kick_player(
     mut server: ResMut<RenetServer>,
     mut do_kick_players: EventReader<DoKickPlayer>,
     mut do_send_packet: EventWriter<DoSendPacketToClient>,
+    clients: Query<&ClientConnection>,
 ) {
     for ev in do_kick_players.read() {
         do_send_packet.send(DoSendPacketToClient {
@@ -127,5 +140,36 @@ pub(super) fn kick_player(
             client_id: ev.client_id,
         });
         server.disconnect(ev.client_id);
+
+        let client = clients
+            .iter()
+            .find(|connection| connection.client_id() == ev.client_id)
+            .unwrap();
+
+        info!("Kicking user {}. Reason: {}", client, ev.reason.as_str());
+    }
+}
+
+pub(super) fn join_player(
+    mut do_validate_client: EventReader<DoValidateClient>,
+    mut on_client_join: EventWriter<OnClientJoin>,
+    mut do_send_packet: EventWriter<DoSendPacketToClient>,
+    mut clients: Query<(Entity, &mut ClientConnection)>,
+) {
+    for ev in do_validate_client.read() {
+        let (entity, mut client) = clients
+            .iter_mut()
+            .find(|(_, connection)| connection.client_id() == ev.client_id)
+            .unwrap();
+
+        info!("User {} has joined the game.", client.to_string());
+
+        client.join();
+        on_client_join.send(OnClientJoin { entity });
+
+        do_send_packet.send(DoSendPacketToClient {
+            packet: HandshakePacket.into(),
+            client_id: ev.client_id,
+        });
     }
 }
