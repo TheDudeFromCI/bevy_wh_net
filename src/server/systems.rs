@@ -91,6 +91,7 @@ pub(super) fn send_packet(
 }
 
 pub(super) fn receive_packets(
+    mut do_kick_players: EventWriter<DoKickPlayer>,
     mut server: ResMut<RenetServer>,
     mut events: EventWriter<OnReceivePacketFromClient>,
 ) {
@@ -98,7 +99,14 @@ pub(super) fn receive_packets(
         while let Some(message) = server.receive_message(client_id, DefaultChannel::ReliableOrdered)
         {
             let Some(packet) = PacketContainer::deserialize(&message) else {
-                warn!("Failed to deserialize packet from {}!", client_id);
+                warn!(
+                    "Failed to deserialize packet from {}! Kicking player.",
+                    client_id
+                );
+                do_kick_players.send(DoKickPlayer {
+                    client_id,
+                    reason: "Failed to deserialize packet.".to_owned(),
+                });
                 continue;
             };
 
