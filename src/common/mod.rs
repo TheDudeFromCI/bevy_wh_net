@@ -5,6 +5,7 @@ mod packets;
 mod protocol;
 
 pub use auth::*;
+pub use bevy_wh_net_derive::Packet;
 pub use handshake_packet::*;
 pub use kick_packet::*;
 pub use packets::*;
