@@ -1,7 +1,6 @@
+use bevy_wh_net_derive::{packet_to_client, PacketCore};
 use serde::{Deserialize, Serialize};
 
-use crate::impl_packet;
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PacketCore)]
+#[packet_to_client]
 pub struct HandshakePacket;
-impl_packet!(to_client HandshakePacket);
