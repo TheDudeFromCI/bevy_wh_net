@@ -10,3 +10,7 @@ pub use handshake_packet::*;
 pub use kick_packet::*;
 pub use packets::*;
 pub use protocol::*;
+
+pub mod reexport {
+    pub use typetag;
+}
