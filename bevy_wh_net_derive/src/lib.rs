@@ -2,11 +2,18 @@ extern crate proc_macro;
 
 use nameof::name_of;
 use proc_macro::TokenStream;
+use quote::quote;
 
 #[proc_macro_derive(Packet)]
 pub fn derive_packet(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    impl_packet(&ast)
+    impl_packet(&ast, false)
+}
+
+#[proc_macro_derive(PacketCore)]
+pub fn derive_packet_core(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    impl_packet(&ast, true)
 }
 
 #[proc_macro_attribute]
@@ -19,8 +26,18 @@ pub fn packet_to_client(_: TokenStream, input: TokenStream) -> TokenStream {
     input
 }
 
-fn impl_packet(ast: &syn::DeriveInput) -> TokenStream {
+fn impl_packet(ast: &syn::DeriveInput, core: bool) -> TokenStream {
     let name = &ast.ident;
+
+    let trait_path = match core {
+        true => quote!(crate::common::PacketImpl),
+        false => quote!(bevy_wh_net::common::PacketImpl),
+    };
+
+    let typetag_path = match core {
+        true => quote!(crate::common::reexport::typetag::serde),
+        false => quote!(bevy_wh_net::common::reexport::typetag::serde),
+    };
 
     let mut send_to_server = false;
     let mut send_to_client = false;
@@ -38,8 +55,8 @@ fn impl_packet(ast: &syn::DeriveInput) -> TokenStream {
     }
 
     let gen = quote::quote! {
-        #[bevy_wh_net::common::reexport::typetag::serde]
-        impl bevy_wh_net::Packet for #name {
+        #[#typetag_path]
+        impl #trait_path for #name {
             fn can_send_to_client(&self) -> bool {
                 #send_to_client
             }
