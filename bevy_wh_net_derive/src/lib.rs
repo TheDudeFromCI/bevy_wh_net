@@ -34,11 +34,6 @@ fn impl_packet(ast: &syn::DeriveInput, core: bool) -> TokenStream {
         false => quote!(bevy_wh_net::common::PacketImpl),
     };
 
-    let typetag_path = match core {
-        true => quote!(crate::common::reexport::typetag::serde),
-        false => quote!(bevy_wh_net::common::reexport::typetag::serde),
-    };
-
     let mut send_to_server = false;
     let mut send_to_client = false;
 
@@ -55,7 +50,7 @@ fn impl_packet(ast: &syn::DeriveInput, core: bool) -> TokenStream {
     }
 
     let gen = quote::quote! {
-        #[#typetag_path]
+        #[typetag::serde]
         impl #trait_path for #name {
             fn can_send_to_client(&self) -> bool {
                 #send_to_client
